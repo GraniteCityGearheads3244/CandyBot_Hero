@@ -3,6 +3,7 @@ using CTRE.Phoenix.Controller;
 using CTRE.Phoenix.MotorControl;
 using Microsoft.SPOT;
 using Microsoft.SPOT.Hardware;
+using System;
 using System.Text;
 using System.Threading;
 
@@ -17,7 +18,7 @@ namespace _2021CandyBot
         /* create a talon, the Talon Device ID in HERO LifeBoat is zero */
         static CTRE.Phoenix.MotorControl.CAN.VictorSPX myConveyor = new CTRE.Phoenix.MotorControl.CAN.VictorSPX(2);
         static CTRE.Phoenix.MotorControl.CAN.VictorSPX myLeftCandy = new CTRE.Phoenix.MotorControl.CAN.VictorSPX(3);
-        static CTRE.Phoenix.MotorControl.CAN.VictorSPX myRightCandy= new CTRE.Phoenix.MotorControl.CAN.VictorSPX(4);
+        static CTRE.Phoenix.MotorControl.CAN.VictorSPX myRightCandy = new CTRE.Phoenix.MotorControl.CAN.VictorSPX(4);
         static CTRE.Phoenix.MotorControl.CAN.VictorSPX myAgitator = new CTRE.Phoenix.MotorControl.CAN.VictorSPX(1);
 
         static OutputPort myFans = new OutputPort(CTRE.HERO.IO.Port5.Pin3, false);
@@ -31,6 +32,8 @@ namespace _2021CandyBot
 
         static CTRE.Phoenix.Controller.GameController _gamepad = null;
 
+        private float driveDirection = 1;
+
         public static void Main()
         {
             /* loop forever */
@@ -40,6 +43,7 @@ namespace _2021CandyBot
                 Drive();
                 Agiitator();
                 LightAndFans();
+                Candy();
                 /* print whatever is in our string builder */
                 Debug.Print(stringBuilder.ToString());
                 stringBuilder.Clear();
@@ -49,10 +53,12 @@ namespace _2021CandyBot
                 Thread.Sleep(20);
             }
         }
+
+
         /**
-         * If value is within 10% of center, clear it.
-         * @param value [out] floating point value to deadband.
-         */
+* If value is within 10% of center, clear it.
+* @param value [out] floating point value to deadband.
+*/
         static void Deadband(ref float value)
         {
             if (value < -0.10)
@@ -69,8 +75,47 @@ namespace _2021CandyBot
                 value = 0;
             }
         }
+
+
+        private static void Candy()
+        {
+            //Make sure there is a Joystick
+            if (null == _gamepad)
+                _gamepad = new GameController(UsbHostDevice.GetInstance());
+
+            if (_gamepad.GetButton(5))
+            {
+                //Left Candy
+                myLeftLED.Write(true);
+                myRightLED.Write(false);
+                myLeftCandy.Set(ControlMode.PercentOutput, 0.2);
+                myRightCandy.Set(ControlMode.PercentOutput, 0.0);
+                myConveyor.Set(ControlMode.PercentOutput, -0.2);
+            }
+            else if (_gamepad.GetButton(6))
+            {
+                //Right Candy
+                myLeftLED.Write(false);
+                myRightLED.Write(true);
+                myLeftCandy.Set(ControlMode.PercentOutput, 0.0);
+                myRightCandy.Set(ControlMode.PercentOutput, 0.2);
+                myConveyor.Set(ControlMode.PercentOutput, 0.2);
+            }
+
+            else
+            {
+                //Off
+                myLeftLED.Write(false);
+                myRightLED.Write(false);
+                myLeftCandy.Set(ControlMode.PercentOutput, 0.0);
+                myRightCandy.Set(ControlMode.PercentOutput, 0.2);
+                myConveyor.Set(ControlMode.PercentOutput, 0.2);
+            }
+        }
+
         static void Drive()
         {
+            //Make sure there is a Joystick
             if (null == _gamepad)
                 _gamepad = new GameController(UsbHostDevice.GetInstance());
 
@@ -113,9 +158,14 @@ namespace _2021CandyBot
 
         static void LightAndFans()
         {
-            myLeftLED.Write(true);
+            
             myFans.Write(true);
-            myRightLED.Write(true);
+     
+
+        }
+
+        static void DriveDirectionFlip()
+        {
 
         }
     }
