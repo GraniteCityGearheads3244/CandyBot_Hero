@@ -6,6 +6,7 @@ using Microsoft.SPOT.Hardware;
 using System;
 using System.Text;
 using System.Threading;
+using Math = System.Math;
 
 namespace _2021CandyBot
 {
@@ -32,14 +33,20 @@ namespace _2021CandyBot
 
         static CTRE.Phoenix.Controller.GameController _gamepad = null;
 
-        private float driveDirection = 1;
+        static double ConveyorSpeed = 0.6;
+        static double CandySpeed = 0.5;
+        static double AgitatorSpeed = .5;
+        static float driveDirection = -1;
 
         public static void Main()
         {
+      
+           
             /* loop forever */
             while (true)
             {
                 /* drive robot using gamepad */
+                DriveDirectionFlip();
                 Drive();
                 Agiitator();
                 LightAndFans();
@@ -85,21 +92,27 @@ namespace _2021CandyBot
 
             if (_gamepad.GetButton(5))
             {
-                //Left Candy
-                myLeftLED.Write(true);
-                myRightLED.Write(false);
-                myLeftCandy.Set(ControlMode.PercentOutput, 0.2);
-                myRightCandy.Set(ControlMode.PercentOutput, 0.0);
-                myConveyor.Set(ControlMode.PercentOutput, -0.2);
+                if (driveDirection < 0)
+                {
+                    CandyBlue();
+                }
+                else
+                {
+                    CandyRed();
+                }
+               
             }
             else if (_gamepad.GetButton(6))
             {
-                //Right Candy
-                myLeftLED.Write(false);
-                myRightLED.Write(true);
-                myLeftCandy.Set(ControlMode.PercentOutput, 0.0);
-                myRightCandy.Set(ControlMode.PercentOutput, 0.2);
-                myConveyor.Set(ControlMode.PercentOutput, 0.2);
+                if (driveDirection < 0)
+                {
+                    CandyRed();
+                }
+                else
+                {
+                    CandyBlue();
+                }
+
             }
 
             else
@@ -108,9 +121,30 @@ namespace _2021CandyBot
                 myLeftLED.Write(false);
                 myRightLED.Write(false);
                 myLeftCandy.Set(ControlMode.PercentOutput, 0.0);
-                myRightCandy.Set(ControlMode.PercentOutput, 0.2);
-                myConveyor.Set(ControlMode.PercentOutput, 0.2);
+                myRightCandy.Set(ControlMode.PercentOutput, 0.0);
+                myConveyor.Set(ControlMode.PercentOutput, 0.0);
             }
+        }
+
+        private static void CandyBlue()
+        {
+            //Left Candy
+            myLeftLED.Write(true);
+            myRightLED.Write(false);
+            myLeftCandy.Set(ControlMode.PercentOutput, -CandySpeed);
+            myRightCandy.Set(ControlMode.PercentOutput, 0.0);
+            myConveyor.Set(ControlMode.PercentOutput, -ConveyorSpeed);
+
+        }
+
+        private static void CandyRed()
+        {
+            //Right Candy
+            myLeftLED.Write(false);
+            myRightLED.Write(true);
+            myLeftCandy.Set(ControlMode.PercentOutput, 0.0);
+            myRightCandy.Set(ControlMode.PercentOutput, -CandySpeed);
+            myConveyor.Set(ControlMode.PercentOutput, ConveyorSpeed);
         }
 
         static void Drive()
@@ -120,26 +154,27 @@ namespace _2021CandyBot
                 _gamepad = new GameController(UsbHostDevice.GetInstance());
 
             //float x = _gamepad.GetAxis(0);
-            float y = -1 * _gamepad.GetAxis(2);
-            float twist = _gamepad.GetAxis(1);
+            float speed = _gamepad.GetAxis(1) * driveDirection;
+            float twist = _gamepad.GetAxis(2);
 
             //Deadband(ref x);
-            Deadband(ref y);
+            Deadband(ref speed);
             Deadband(ref twist);
 
-            float leftThrot = y + twist;
-            float rightThrot = y - twist;
+            float leftThrot = speed + twist;
+            float rightThrot = speed - twist;
 
             leftDrive.Set(leftThrot);
             rightDrive.Set(-rightThrot);
          
 
             stringBuilder.Append("\t");
-            //stringBuilder.Append(x);
-            stringBuilder.Append("\t");
-            stringBuilder.Append(y);
-            stringBuilder.Append("\t");
-            stringBuilder.Append(twist);
+            stringBuilder.Append("driveDirection ");
+            stringBuilder.Append(driveDirection);
+            //stringBuilder.Append("\t");
+            //stringBuilder.Append(y);
+            //stringBuilder.Append("\t");
+            //stringBuilder.Append(twist);
 
         }
 
@@ -149,9 +184,9 @@ namespace _2021CandyBot
                 _gamepad = new GameController(UsbHostDevice.GetInstance());
 
             if (_gamepad.GetButton(1))
-                myAgitator.Set(ControlMode.PercentOutput, .2);
+                myAgitator.Set(ControlMode.PercentOutput, AgitatorSpeed);
             else if (_gamepad.GetButton(2))
-                myAgitator.Set(ControlMode.PercentOutput, -.2);
+                myAgitator.Set(ControlMode.PercentOutput, -AgitatorSpeed);
             else
                 myAgitator.Set(ControlMode.PercentOutput, 0);
         }
@@ -166,6 +201,17 @@ namespace _2021CandyBot
 
         static void DriveDirectionFlip()
         {
+            if (null == _gamepad)
+                _gamepad = new GameController(UsbHostDevice.GetInstance());
+
+            if (_gamepad.GetButton(10))
+            { 
+                driveDirection = -1;
+            }
+            else if (_gamepad.GetButton(9))
+            {
+                driveDirection = 1;
+            }
 
         }
     }
