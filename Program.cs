@@ -26,6 +26,7 @@ namespace _2021CandyBot
         static OutputPort myLeftLED = new OutputPort(CTRE.HERO.IO.Port5.Pin4, false);
         static OutputPort myRightLED = new OutputPort(CTRE.HERO.IO.Port5.Pin5, false);
         static OutputPort myspare = new OutputPort(CTRE.HERO.IO.Port5.Pin6, false);
+        static OutputPort myStackLight = new OutputPort(CTRE.HERO.IO.Port5.Pin7, false);
 
 
 
@@ -195,7 +196,30 @@ namespace _2021CandyBot
         {
             
             myFans.Write(true);
+            blinker();
+            //myStackLight.Write(true);
+
      
+
+        }
+
+        static int scanCount = 0;
+        private static void blinker()
+        {
+            if (scanCount < 25)
+            {
+                myStackLight.Write(true);
+                scanCount++;
+            }
+            else
+            {
+                myStackLight.Write(false);
+                scanCount++;
+            }
+            if (scanCount > 50)
+            {
+                scanCount = 0;
+            }
 
         }
 
