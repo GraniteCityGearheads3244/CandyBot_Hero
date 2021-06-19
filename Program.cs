@@ -35,7 +35,7 @@ namespace _2021CandyBot
         static CTRE.Phoenix.Controller.GameController _gamepad = null;
 
         static double ConveyorSpeed = 0.6;
-        static double CandySpeed = 0.5;
+        static double CandySpeed = 0.35;
         static double AgitatorSpeed = .5;
         static float driveDirection = -1;
 
