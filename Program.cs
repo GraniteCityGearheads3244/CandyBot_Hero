@@ -27,6 +27,7 @@ namespace _2021CandyBot
         static OutputPort myRightLED = new OutputPort(CTRE.HERO.IO.Port5.Pin5, false);
         static OutputPort myspare = new OutputPort(CTRE.HERO.IO.Port5.Pin6, false);
         static OutputPort myStackLight = new OutputPort(CTRE.HERO.IO.Port5.Pin7, false);
+        static AnalogInput analogInput0 = new AnalogInput(CTRE.HERO.IO.Port1.Analog_Pin3);
 
 
 
@@ -34,7 +35,7 @@ namespace _2021CandyBot
 
         static CTRE.Phoenix.Controller.GameController _gamepad = null;
 
-        static double ConveyorSpeed = 0.6;
+        static double ConveyorSpeed = 0.45;
         static double CandySpeed = 0.35;
         static double AgitatorSpeed = .5;
         static float driveDirection = -1;
@@ -134,18 +135,46 @@ namespace _2021CandyBot
             myRightLED.Write(false);
             myLeftCandy.Set(ControlMode.PercentOutput, -CandySpeed);
             myRightCandy.Set(ControlMode.PercentOutput, 0.0);
-            myConveyor.Set(ControlMode.PercentOutput, -ConveyorSpeed);
+            myConveyor.Set(ControlMode.PercentOutput, -getConSpeed());
 
         }
 
         private static void CandyRed()
         {
+
             //Right Candy
             myLeftLED.Write(false);
             myRightLED.Write(true);
             myLeftCandy.Set(ControlMode.PercentOutput, 0.0);
             myRightCandy.Set(ControlMode.PercentOutput, -CandySpeed);
-            myConveyor.Set(ControlMode.PercentOutput, ConveyorSpeed);
+            myConveyor.Set(ControlMode.PercentOutput, getConSpeed());
+        }
+
+
+        static double getConSpeed()
+        {
+
+            double maxNew = 1;
+            double minNew = 0;
+            double minIn = 0;
+            double maxIn = 1;
+            double value = analogInput0.Read();
+            double newvalue = (maxNew - minNew) / (maxIn - minIn) * (value - minIn) + minNew;
+            //.Append("value: ");
+            //stringBuilder.Append(value);
+            //stringBuilder.Append("\t");
+            //stringBuilder.Append("  newvalue: ");
+            //stringBuilder.Append(newvalue);
+
+            if (null == _gamepad)
+                _gamepad = new GameController(UsbHostDevice.GetInstance());
+
+            if (_gamepad.GetButton(7) || _gamepad.GetButton(8))
+            {
+                newvalue = .6;
+
+            }
+            return newvalue;
         }
 
         static void Drive()
